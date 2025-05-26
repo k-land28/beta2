@@ -1,104 +1,125 @@
-let mode = 'open_none';
-let currentQuestion = null;
-let awaiting4BetResponse = false;
-let correct4BetAction = '';
-let resultText = document.getElementById('resultText');
+'use strict';
 
-document.querySelectorAll('.tab-button').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-    button.classList.add('active');
-    mode = button.getAttribute('data-mode');
-    resetUI();
-    loadNextQuestion();
-  });
-});
+const positions = ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB'];
 
-document.getElementById('nextButton').addEventListener('click', () => {
-  resetUI();
-  loadNextQuestion();
-});
+let openraiseRangeData = null;  // JSONデータをここに格納
 
-function resetUI() {
-  document.getElementById('situationText').textContent = '';
-  document.getElementById('handText').textContent = '';
-  document.getElementById('actionButtons').innerHTML = '';
-  resultText.textContent = '';
-  awaiting4BetResponse = false;
-  correct4BetAction = '';
+// JSONファイルをfetchで読み込み（openraise.json）
+async function loadOpenraiseRange() {
+  try {
+    const res = await fetch('openraise.json');
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    openraiseRangeData = await res.json();
+  } catch (e) {
+    console.error('openraise.jsonの読み込みに失敗しました:', e);
+  }
 }
 
-async function loadNextQuestion() {
-  const response = await fetch(`${mode}.json`);
-  const ranges = await response.json();
-  const positions = ["EP", "MP", "CO", "BTN", "SB", "BB"];
-  const opener = positions[Math.floor(Math.random() * positions.length)];
-  let responderOptions = positions.filter(pos => pos !== opener);
-  let responder = responderOptions[Math.floor(Math.random() * responderOptions.length)];
-  const betSizes = ["2bb", "3bb"];
-  const betSize = betSizes[Math.floor(Math.random() * betSizes.length)];
-
-  if (!ranges[opener] || !ranges[opener][responder] || !ranges[opener][responder][betSize]) {
-    loadNextQuestion(); // 無効な組み合わせはスキップ
-    return;
+// openraiseモードの問題生成
+function generateOpenraiseQuestion() {
+  if (!openraiseRangeData) {
+    return {
+      situation: 'openraise.jsonのデータが読み込まれていません。',
+      correct: null,
+      choices: [],
+      position: null,
+      hand: null,
+      stage: 'openraise'
+    };
   }
 
-  const hands = Object.keys(ranges[opener][responder][betSize]);
+  // BBはopenraiseモードでは除外
+  const validPositions = Object.keys(openraiseRangeData).filter(pos => pos !== 'BB');
+
+  // ランダムにポジション選択
+  const position = validPositions[Math.floor(Math.random() * validPositions.length)];
+
+  // そのポジションのハンド一覧からランダムに選択
+  const hands = Object.keys(openraiseRangeData[position].hands);
   const hand = hands[Math.floor(Math.random() * hands.length)];
-  const answer = ranges[opener][responder][betSize][hand];
 
-  currentQuestion = { opener, responder, betSize, hand, answer };
+  // 正解アクションを取得
+  const correct = openraiseRangeData[position].hands[hand];
 
-  document.getElementById('situationText').textContent = `${opener} opened ${betSize}, ${responder} のアクションは？`;
-  document.getElementById('handText').textContent = `Your hand: ${hand}`;
-  showAnswerButtons();
+  return {
+    situation: `あなたのポジションは${position}です。\nハンドは${hand}です。\nOpen Raiseしますか？`,
+    correct: correct,
+    choices: ['Raise', 'Fold'],
+    position: position,
+    hand: hand,
+    stage: 'openraise'
+  };
 }
 
-function showAnswerButtons() {
-  const actions = ["Call", "Fold", "3Bet"];
-  const container = document.getElementById('actionButtons');
-  container.innerHTML = '';
-  actions.forEach(action => {
-    const btn = document.createElement('button');
-    btn.textContent = action;
-    btn.onclick = () => handleAnswer(action);
-    container.appendChild(btn);
-  });
-}
+let currentMode = 'openraise';
+let currentQuestion = null;
 
-function handleAnswer(answer) {
-  if (awaiting4BetResponse) {
-    if (answer === correct4BetAction) {
-      resultText.textContent = "正解！（4Betに対しての対応）";
-    } else {
-      resultText.textContent = `不正解！正解は ${correct4BetAction} でした`;
+const situationText = document.getElementById('situationText');
+const handText = document.getElementById('handText');
+const actionButtons = document.getElementById('actionButtons');
+const resultText = document.getElementById('resultText');
+const nextButton = document.getElementById('nextButton');
+const tabs = document.querySelectorAll('.tab-button');
+
+async function displayQuestion() {
+  if (currentMode === 'openraise') {
+    if (!openraiseRangeData) {
+      await loadOpenraiseRange();
+      if (!openraiseRangeData) {
+        situationText.textContent = '問題データの読み込みに失敗しました。';
+        return;
+      }
     }
-    awaiting4BetResponse = false;
-    correct4BetAction = '';
-    return;
-  }
-
-  if (answer === currentQuestion.answer.action) {
-    resultText.textContent = "正解！";
-
-    if (answer === "3Bet" && currentQuestion.answer.nextAction) {
-      awaiting4BetResponse = true;
-      correct4BetAction = currentQuestion.answer.nextAction;
-      show4BetResponseButtons();
-    }
+    currentQuestion = generateOpenraiseQuestion();
   } else {
-    resultText.textContent = `不正解！正解は ${currentQuestion.answer.action} でした`;
+    // 他モード対応のgenerateRandomQuestion呼び出し（元コードの関数を使う想定）
+    currentQuestion = generateRandomQuestion(currentMode);
   }
-}
 
-function show4BetResponseButtons() {
-  const responses = ["5Bet", "Call 4Bet", "Fold 4Bet"];
-  const container = document.getElementById('actionButtons');
-  container.innerHTML = '<p>相手から4Betが返ってきたら？</p>';
-  responses.forEach(response => {
+  const q = currentQuestion;
+  situationText.textContent = q.situation;
+  handText.textContent = ''; // situation内にハンド表示済みのため空欄
+
+  resultText.textContent = '';
+  actionButtons.innerHTML = '';
+
+  q.choices.forEach(choice => {
     const btn = document.createElement('button');
-    btn.textContent = response;
-    btn.onclick = () => handleAnswer(response);
-    container.appendChild(btn);
+    btn.textContent = choice;
+    if (/fold/i.test(choice)) {
+      btn.classList.add('fold');
+    } else if (/call/i.test(choice)) {
+      btn.classList.add('call');
+    } else {
+      btn.classList.add('raise');
+    }
+    btn.addEventListener('click', () => {
+      if (choice === q.correct) {
+        resultText.style.color = '#0faa00';
+        resultText.textContent = '正解！🎉';
+      } else {
+        resultText.style.color = '#ff2200';
+        resultText.textContent = `不正解。正解は「${q.correct}」です。`;
+      }
+    });
+    actionButtons.appendChild(btn);
   });
 }
+
+function switchMode(newMode) {
+  currentMode = newMode;
+  tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.mode === newMode));
+  displayQuestion();
+}
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (tab.dataset.mode !== currentMode) {
+      switchMode(tab.dataset.mode);
+    }
+  });
+});
+
+nextButton.addEventListener('click', displayQuestion);
+
+window.addEventListener('load', () => switchMode(currentMode));
