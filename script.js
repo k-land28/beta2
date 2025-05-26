@@ -112,6 +112,32 @@ function switchMode(newMode) {
   displayQuestion();
 }
 
+// ポジション表示（テーブル上の楕円配置）
+function renderPositions() {
+  const table = document.getElementById('table');
+  table.innerHTML = ''; // 一旦中身をクリア
+
+  const angleStep = (2 * Math.PI) / positions.length;
+  const radiusX = 160;
+  const radiusY = 80;
+  const centerX = 200;
+  const centerY = 110;
+
+  positions.forEach((pos, i) => {
+    const angle = angleStep * i - Math.PI / 2;
+    const x = centerX + radiusX * Math.cos(angle);
+    const y = centerY + radiusY * Math.sin(angle);
+
+    const div = document.createElement('div');
+    div.className = 'position';
+    div.textContent = pos;
+    div.style.left = `${x - 25}px`;
+    div.style.top = `${y - 15}px`;
+
+    table.appendChild(div);
+  });
+}
+
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     if (tab.dataset.mode !== currentMode) {
@@ -122,4 +148,7 @@ tabs.forEach(tab => {
 
 nextButton.addEventListener('click', displayQuestion);
 
-window.addEventListener('load', () => switchMode(currentMode));
+window.addEventListener('load', () => {
+  renderPositions(); // ← ポジション表示の復活！
+  switchMode(currentMode);
+});
