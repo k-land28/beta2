@@ -51,6 +51,19 @@ function generateOpenraiseQuestion() {
   };
 }
 
+// 他モード用の仮関数（元コードのgenerateRandomQuestionを使う想定）
+function generateRandomQuestion(mode) {
+  // 実装は別途
+  return {
+    situation: `モード「${mode}」の問題をまだ実装していません。`,
+    correct: null,
+    choices: [],
+    position: null,
+    hand: null,
+    stage: mode
+  };
+}
+
 let currentMode = 'openraise';
 let currentQuestion = null;
 
@@ -60,6 +73,64 @@ const actionButtons = document.getElementById('actionButtons');
 const resultText = document.getElementById('resultText');
 const nextButton = document.getElementById('nextButton');
 const tabs = document.querySelectorAll('.tab-button');
+const table = document.getElementById('table');
+
+// 楕円テーブル上にポジション表示を描画する関数
+// selectedPosition: 今の自分のポジション名（例: 'MP'）
+function renderPositions(selectedPosition) {
+  // 一旦中身クリア
+  table.innerHTML = '';
+
+  // テーブルの幅・高さ取得（style.cssで400x220のmax-widthだが動的取得）
+  const W = table.clientWidth;
+  const H = table.clientHeight;
+
+  // 楕円の中心座標
+  const cx = W / 2;
+  const cy = H / 2;
+
+  // 半径（横・縦）
+  const rx = W / 2 * 0.85;  // 少し余裕を持たせる
+  const ry = H / 2 * 0.85;
+
+  // 自分ポジションが下（270度）になるようにオフセット回転角度
+  // 通常均等配置なら i * (360/6) = i * 60度
+  // オフセットを加算して自分を270度にする
+  // 自分のインデックスを調べる
+  const selfIndex = positions.indexOf(selectedPosition);
+  if (selfIndex < 0) {
+    console.warn('renderPositions: selectedPositionが不正です。', selectedPosition);
+  }
+  // オフセット角度（度）
+  const offsetDeg = 270 - selfIndex * (360 / positions.length);
+
+  // 各ポジションの描画
+  positions.forEach((pos, i) => {
+    // 角度計算（度数法 → ラジアン）
+    const deg = i * (360 / positions.length) + offsetDeg;
+    const rad = deg * Math.PI / 180;
+
+    // 楕円上の座標計算
+    const x = cx + rx * Math.cos(rad);
+    const y = cy + ry * Math.sin(rad);
+
+    // ポジション要素生成
+    const div = document.createElement('div');
+    div.className = 'position';
+    div.textContent = pos;
+
+    // 左上基準なので中央にするため調整（幅50、高さ30の半分）
+    div.style.left = `${x - 25}px`;
+    div.style.top = `${y - 15}px`;
+
+    // 自分のポジションだけ特別クラス付けて光らせる
+    if (pos === selectedPosition) {
+      div.classList.add('active-position');
+    }
+
+    table.appendChild(div);
+  });
+}
 
 async function displayQuestion() {
   if (currentMode === 'openraise') {
@@ -72,7 +143,6 @@ async function displayQuestion() {
     }
     currentQuestion = generateOpenraiseQuestion();
   } else {
-    // 他モード対応のgenerateRandomQuestion呼び出し（元コードの関数を使う想定）
     currentQuestion = generateRandomQuestion(currentMode);
   }
 
@@ -82,6 +152,14 @@ async function displayQuestion() {
 
   resultText.textContent = '';
   actionButtons.innerHTML = '';
+
+  // テーブル上に自分のポジションを下に固定し光らせる
+  if (q.position) {
+    renderPositions(q.position);
+  } else {
+    // もしポジション情報ないなら一応デフォルト描画（光らせなし）
+    renderPositions(null);
+  }
 
   q.choices.forEach(choice => {
     const btn = document.createElement('button');
@@ -112,32 +190,6 @@ function switchMode(newMode) {
   displayQuestion();
 }
 
-// ポジション表示（テーブル上の楕円配置）
-function renderPositions() {
-  const table = document.getElementById('table');
-  table.innerHTML = ''; // 一旦中身をクリア
-
-  const angleStep = (2 * Math.PI) / positions.length;
-  const radiusX = 160;
-  const radiusY = 80;
-  const centerX = 200;
-  const centerY = 110;
-
-  positions.forEach((pos, i) => {
-    const angle = angleStep * i - Math.PI / 2;
-    const x = centerX + radiusX * Math.cos(angle);
-    const y = centerY + radiusY * Math.sin(angle);
-
-    const div = document.createElement('div');
-    div.className = 'position';
-    div.textContent = pos;
-    div.style.left = `${x - 25}px`;
-    div.style.top = `${y - 15}px`;
-
-    table.appendChild(div);
-  });
-}
-
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     if (tab.dataset.mode !== currentMode) {
@@ -148,7 +200,4 @@ tabs.forEach(tab => {
 
 nextButton.addEventListener('click', displayQuestion);
 
-window.addEventListener('load', () => {
-  renderPositions(); // ← ポジション表示の復活！
-  switchMode(currentMode);
-});
+window.addEventListener('load', () => switchMode(currentMode));
