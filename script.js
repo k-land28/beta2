@@ -106,7 +106,7 @@ function renderPositions(selectedPosition) {
 
   positions.forEach((pos, i) => {
     const relativeIndex = (i - selfIndex + positions.length) % positions.length;
-    const deg = relativeIndex * (360 / positions.length) + 180; // 下を0度にするため180度オフセット
+    const deg = relativeIndex * (360 / positions.length) + 270; // 下を0度にするため180度オフセット
     const rad = deg * Math.PI / 180;
 
     const x = cx + rx * Math.cos(rad);
