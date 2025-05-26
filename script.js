@@ -53,7 +53,7 @@ function generateOpenraiseQuestion() {
   const item = allOpenraiseHandsList[Math.floor(Math.random() * allOpenraiseHandsList.length)];
 
   return {
-    situation: `あなたのポジションは${item.position}です。\nハンドは${item.hand}です。\nOpen Raiseしますか？`,
+    situation: `あなたのポジションは${item.position}です。<br>ハンドは${item.hand}です。\nOpen Raiseしますか？`,
     correct: item.correct,
     choices: ['Raise', 'Fold'],
     position: item.position,
