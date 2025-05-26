@@ -103,10 +103,10 @@ function renderPositions(selectedPosition) {
   if (selfIndex < 0) {
     console.warn('renderPositions: selectedPositionが不正です。', selectedPosition);
   }
-  const offsetDeg = 270 - selfIndex * (360 / positions.length);
 
   positions.forEach((pos, i) => {
-    const deg = i * (360 / positions.length) + offsetDeg;
+    const relativeIndex = (i - selfIndex + positions.length) % positions.length;
+    const deg = relativeIndex * (360 / positions.length) + 180; // 下を0度にするため180度オフセット
     const rad = deg * Math.PI / 180;
 
     const x = cx + rx * Math.cos(rad);
