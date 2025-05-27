@@ -85,8 +85,9 @@ function buildVs3BetHandsList(rangeData) {
       const hands = rangeData[threeBetter][opener].hands;
       for (const hand in hands) {
         list.push({
-          threeBetter: threeBetter,
+          raiser: threeBetter,
           opener: opener,
+          position: opener,
           hand: hand,
           correct: hands[hand]
         });
@@ -165,14 +166,16 @@ function generateVs3BetQuestion() {
   const item = allVs3BetHandsList[Math.floor(Math.random() * allVs3BetHandsList.length)];
 
   return {
-    situation: `${item.opener}からオープンし、${item.threeBetter}から3Betされた状況でのあなたのハンド：${item.hand}`,
+    situation: `${item.opener}がオープンし、${item.raiser}が3Betした状況で、${item.position}のあなたのハンド：${item.hand}`,
     correct: item.correct,
     choices: [
-      'Fold',
       'Call',
-      '5Bet'
+      'Fold',
+      '3Bet / Fold 4Bet',
+      '3Bet / Call 4Bet',
+      '3Bet / Raise 4Bet'
     ],
-    position: item.opener,
+    position: item.position,
     hand: item.hand,
     stage: 'vs_3bet'
   };
@@ -242,19 +245,13 @@ function renderPositions(selectedPosition) {
 
 async function displayQuestion() {
   if (currentMode === 'openraise') {
-    if (!openraiseRangeData) {
-      await loadOpenraiseRange();
-    }
+    if (!openraiseRangeData) await loadOpenraiseRange();
     currentQuestion = generateOpenraiseQuestion();
   } else if (currentMode === 'vs_open') {
-    if (!vsOpenRangeData) {
-      await loadVsOpenRange();
-    }
+    if (!vsOpenRangeData) await loadVsOpenRange();
     currentQuestion = generateVsOpenQuestion();
   } else if (currentMode === 'vs_3bet') {
-    if (!vs3BetRangeData) {
-      await loadVs3BetRange();
-    }
+    if (!vs3BetRangeData) await loadVs3BetRange();
     currentQuestion = generateVs3BetQuestion();
   } else {
     currentQuestion = generateRandomQuestion(currentMode);
