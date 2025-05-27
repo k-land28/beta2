@@ -1,30 +1,31 @@
 'use strict';
 
-const positions = ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB'];
+const positions = ['EP', 'MP', 'CO', 'BTN', 'SB', 'BB'];
 
-let openraiseRangeData = null;  // JSONデータをここに格納
-let allOpenraiseHandsList = null; // 全ポジション×ハンドの展開リスト
+let openraiseRangeData = null;
+let allOpenraiseHandsList = null;
 
-// JSONファイルをfetchで読み込み（openraise.json）
+let vsOpenRangeData = null;
+let allVsOpenHandsList = null;
+
+let vs3BetRangeData = null;
+let allVs3BetHandsList = null;
+
 async function loadOpenraiseRange() {
   try {
     const res = await fetch('openraise.json');
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     openraiseRangeData = await res.json();
-
-    // 全ポジション×ハンドの組み合わせリストを作成（BB除外）
-    allOpenraiseHandsList = buildAllHandsList(openraiseRangeData);
-
+    allOpenraiseHandsList = buildOpenraiseHandsList(openraiseRangeData);
   } catch (e) {
     console.error('openraise.jsonの読み込みに失敗しました:', e);
   }
 }
 
-// 全ポジション×ハンドの組み合わせリストを作る関数
-function buildAllHandsList(rangeData) {
+function buildOpenraiseHandsList(rangeData) {
   const list = [];
   for (const pos in rangeData) {
-    if (pos === 'BB') continue; // openraiseモードではBB除外
+    if (pos === 'BB') continue;
     const hands = rangeData[pos].hands;
     for (const hand in hands) {
       list.push({
@@ -37,7 +38,64 @@ function buildAllHandsList(rangeData) {
   return list;
 }
 
-// openraiseモードの問題生成（全展開リストからランダムに1問抽出）
+async function loadVsOpenRange() {
+  try {
+    const res = await fetch('vs_open.json');
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    vsOpenRangeData = await res.json();
+    allVsOpenHandsList = buildVsOpenHandsList(vsOpenRangeData);
+  } catch (e) {
+    console.error('vs_open.jsonの読み込みに失敗しました:', e);
+  }
+}
+
+function buildVsOpenHandsList(rangeData) {
+  const list = [];
+  for (const opener in rangeData) {
+    for (const hero in rangeData[opener]) {
+      const hands = rangeData[opener][hero].hands;
+      for (const hand in hands) {
+        list.push({
+          opener: opener,
+          position: hero,
+          hand: hand,
+          correct: hands[hand]
+        });
+      }
+    }
+  }
+  return list;
+}
+
+async function loadVs3BetRange() {
+  try {
+    const res = await fetch('vs_3bet.json');
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    vs3BetRangeData = await res.json();
+    allVs3BetHandsList = buildVs3BetHandsList(vs3BetRangeData);
+  } catch (e) {
+    console.error('vs_3bet.jsonの読み込みに失敗しました:', e);
+  }
+}
+
+function buildVs3BetHandsList(rangeData) {
+  const list = [];
+  for (const threeBetter in rangeData) {
+    for (const opener in rangeData[threeBetter]) {
+      const hands = rangeData[threeBetter][opener].hands;
+      for (const hand in hands) {
+        list.push({
+          threeBetter: threeBetter,
+          opener: opener,
+          hand: hand,
+          correct: hands[hand]
+        });
+      }
+    }
+  }
+  return list;
+}
+
 function generateOpenraiseQuestion() {
   if (!allOpenraiseHandsList || allOpenraiseHandsList.length === 0) {
     return {
@@ -62,7 +120,64 @@ function generateOpenraiseQuestion() {
   };
 }
 
-// 他モード用の仮関数（元コードのgenerateRandomQuestionを使う想定）
+function generateVsOpenQuestion() {
+  if (!allVsOpenHandsList || allVsOpenHandsList.length === 0) {
+    return {
+      situation: 'vs_open.jsonのデータが読み込まれていません、または問題がありません。',
+      correct: null,
+      choices: [],
+      position: null,
+      hand: null,
+      stage: 'vs_open'
+    };
+  }
+
+  const item = allVsOpenHandsList[Math.floor(Math.random() * allVsOpenHandsList.length)];
+
+  return {
+    situation: `${item.opener}がオープンした状況で、${item.position}のあなたのハンド：${item.hand}`,
+    correct: item.correct,
+    choices: [
+      'Call',
+      'Fold',
+      '3Bet / Fold 4Bet',
+      '3Bet / Call 4Bet',
+      '3Bet / Raise 4Bet'
+    ],
+    position: item.position,
+    hand: item.hand,
+    stage: 'vs_open'
+  };
+}
+
+function generateVs3BetQuestion() {
+  if (!allVs3BetHandsList || allVs3BetHandsList.length === 0) {
+    return {
+      situation: 'vs_3bet.jsonのデータが読み込まれていません、または問題がありません。',
+      correct: null,
+      choices: [],
+      position: null,
+      hand: null,
+      stage: 'vs_3bet'
+    };
+  }
+
+  const item = allVs3BetHandsList[Math.floor(Math.random() * allVs3BetHandsList.length)];
+
+  return {
+    situation: `${item.opener}からオープンし、${item.threeBetter}から3Betされた状況でのあなたのハンド：${item.hand}`,
+    correct: item.correct,
+    choices: [
+      'Fold',
+      'Call',
+      '5Bet'
+    ],
+    position: item.opener,
+    hand: item.hand,
+    stage: 'vs_3bet'
+  };
+}
+
 function generateRandomQuestion(mode) {
   return {
     situation: `モード「${mode}」の問題をまだ実装していません。`,
@@ -85,8 +200,6 @@ const nextButton = document.getElementById('nextButton');
 const tabs = document.querySelectorAll('.tab-button');
 const table = document.getElementById('table');
 
-// 楕円テーブル上にポジション表示を描画する関数
-// selectedPosition: 今の自分のポジション名（例: 'MP'）
 function renderPositions(selectedPosition) {
   table.innerHTML = '';
 
@@ -106,7 +219,7 @@ function renderPositions(selectedPosition) {
 
   positions.forEach((pos, i) => {
     const relativeIndex = (i - selfIndex + positions.length) % positions.length;
-    const deg = relativeIndex * (360 / positions.length) + 90; // 下を0度にするため180度オフセット
+    const deg = relativeIndex * (360 / positions.length) + 90;
     const rad = deg * Math.PI / 180;
 
     const x = cx + rx * Math.cos(rad);
@@ -131,28 +244,29 @@ async function displayQuestion() {
   if (currentMode === 'openraise') {
     if (!openraiseRangeData) {
       await loadOpenraiseRange();
-      if (!openraiseRangeData) {
-        situationText.textContent = '問題データの読み込みに失敗しました。';
-        return;
-      }
     }
     currentQuestion = generateOpenraiseQuestion();
+  } else if (currentMode === 'vs_open') {
+    if (!vsOpenRangeData) {
+      await loadVsOpenRange();
+    }
+    currentQuestion = generateVsOpenQuestion();
+  } else if (currentMode === 'vs_3bet') {
+    if (!vs3BetRangeData) {
+      await loadVs3BetRange();
+    }
+    currentQuestion = generateVs3BetQuestion();
   } else {
     currentQuestion = generateRandomQuestion(currentMode);
   }
 
   const q = currentQuestion;
   situationText.textContent = q.situation;
-  handText.textContent = ''; // situationに含むので空に
-
+  handText.textContent = '';
   resultText.textContent = '';
   actionButtons.innerHTML = '';
 
-  if (q.position) {
-    renderPositions(q.position);
-  } else {
-    renderPositions(null);
-  }
+  renderPositions(q.position);
 
   q.choices.forEach(choice => {
     const btn = document.createElement('button');
