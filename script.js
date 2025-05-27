@@ -11,6 +11,7 @@ let allVsOpenHandsList = null;
 let vs3BetRangeData = null;
 let allVs3BetHandsList = null;
 
+// openraise
 async function loadOpenraiseRange() {
   try {
     const res = await fetch('openraise.json');
@@ -38,6 +39,7 @@ function buildOpenraiseHandsList(rangeData) {
   return list;
 }
 
+// vs_open
 async function loadVsOpenRange() {
   try {
     const res = await fetch('vs_open.json');
@@ -67,6 +69,7 @@ function buildVsOpenHandsList(rangeData) {
   return list;
 }
 
+// vs_3bet
 async function loadVs3BetRange() {
   try {
     const res = await fetch('vs_3bet.json');
@@ -80,14 +83,13 @@ async function loadVs3BetRange() {
 
 function buildVs3BetHandsList(rangeData) {
   const list = [];
-  for (const threeBetter in rangeData) {
-    for (const opener in rangeData[threeBetter]) {
-      const hands = rangeData[threeBetter][opener].hands;
+  for (const opener in rangeData) {
+    for (const threeBetter in rangeData[opener]) {
+      const hands = rangeData[opener][threeBetter].hands;
       for (const hand in hands) {
         list.push({
-          raiser: threeBetter,
           opener: opener,
-          position: opener,
+          threeBetter: threeBetter,
           hand: hand,
           correct: hands[hand]
         });
@@ -166,7 +168,7 @@ function generateVs3BetQuestion() {
   const item = allVs3BetHandsList[Math.floor(Math.random() * allVs3BetHandsList.length)];
 
   return {
-    situation: `${item.opener}がオープンし、${item.raiser}が3Betした状況で、${item.position}のあなたのハンド：${item.hand}`,
+    situation: `${item.opener}からオープンし、${item.threeBetter}が3Betしてきた状況で、あなたのハンド：${item.hand}`,
     correct: item.correct,
     choices: [
       'Call',
@@ -175,7 +177,7 @@ function generateVs3BetQuestion() {
       '3Bet / Call 4Bet',
       '3Bet / Raise 4Bet'
     ],
-    position: item.position,
+    position: item.opener,
     hand: item.hand,
     stage: 'vs_3bet'
   };
@@ -245,13 +247,19 @@ function renderPositions(selectedPosition) {
 
 async function displayQuestion() {
   if (currentMode === 'openraise') {
-    if (!openraiseRangeData) await loadOpenraiseRange();
+    if (!openraiseRangeData) {
+      await loadOpenraiseRange();
+    }
     currentQuestion = generateOpenraiseQuestion();
   } else if (currentMode === 'vs_open') {
-    if (!vsOpenRangeData) await loadVsOpenRange();
+    if (!vsOpenRangeData) {
+      await loadVsOpenRange();
+    }
     currentQuestion = generateVsOpenQuestion();
   } else if (currentMode === 'vs_3bet') {
-    if (!vs3BetRangeData) await loadVs3BetRange();
+    if (!vs3BetRangeData) {
+      await loadVs3BetRange();
+    }
     currentQuestion = generateVs3BetQuestion();
   } else {
     currentQuestion = generateRandomQuestion(currentMode);
