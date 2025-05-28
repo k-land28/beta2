@@ -360,6 +360,7 @@ async function displayQuestion() {
       btn.classList.add('raise');
     }
     btn.addEventListener('click', () => {
+      if (actionButtons.querySelector('.disabled')) return;
       if (choice === q.correct) {
         resultText.style.color = '#0faa00';
         resultText.textContent = '正解！🎉';
@@ -367,6 +368,7 @@ async function displayQuestion() {
         resultText.style.color = '#ff2200';
         resultText.textContent = `不正解。正解は「${q.correct}」です。`;
       }
+      actionButtons.querySelectorAll('button').forEach(b => b.classList.add('disabled'));
     });
     actionButtons.appendChild(btn);
   });
