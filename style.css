@@ -132,3 +132,8 @@ body {
   font-weight: bold;
   user-select: none;
 }
+
+button.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
