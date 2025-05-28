@@ -1,3 +1,4 @@
+
 'use strict';
 
 const positions = ['EP', 'MP', 'CO', 'BTN', 'SB', 'BB'];
@@ -10,6 +11,9 @@ let allVsOpenHandsList = null;
 
 let vs3BetRangeData = null;
 let allVs3BetHandsList = null;
+
+let bbdefenseRangeData = null;
+let allBbdefenseHandsList = null;
 
 // openraise
 async function loadOpenraiseRange() {
@@ -99,6 +103,36 @@ function buildVs3BetHandsList(rangeData) {
   return list;
 }
 
+// BBdefense
+async function loadBbdefenseRange() {
+  try {
+    const res = await fetch('bbdefense.json');
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    bbdefenseRangeData = await res.json();
+    allBbdefenseHandsList = buildBbdefenseHandsList(bbdefenseRangeData);
+  } catch (e) {
+    console.error('bbdefense.jsonの読み込みに失敗しました:', e);
+  }
+}
+
+function buildBbdefenseHandsList(rangeData) {
+  const list = [];
+  for (const opener in rangeData) {
+    for (const size in rangeData[opener]) {
+      const hands = rangeData[opener][size].hands;
+      for (const hand in hands) {
+        list.push({
+          opener: opener,
+          size: size,
+          hand: hand,
+          correct: hands[hand]
+        });
+      }
+    }
+  }
+  return list;
+}
+
 function generateOpenraiseQuestion() {
   if (!allOpenraiseHandsList || allOpenraiseHandsList.length === 0) {
     return {
@@ -148,6 +182,7 @@ function generateVsOpenQuestion() {
       '3Bet / Raise 4Bet'
     ],
     position: item.position,
+    opener:item.opner,
     hand: item.hand,
     stage: 'vs_open'
   };
@@ -178,8 +213,40 @@ function generateVs3BetQuestion() {
       '3Bet / Raise 4Bet'
     ],
     position: item.opener,
+    threeBetter:item.threeBetter,
     hand: item.hand,
     stage: 'vs_3bet'
+  };
+}
+
+function generateBbdefenseQuestion() {
+  if (!allBbdefenseHandsList || allBbdefenseHandsList.length === 0) {
+    return {
+      situation: 'bbdefense.jsonのデータが読み込まれていません、または問題がありません。',
+      correct: null,
+      choices: [],
+      position: null,
+      hand: null,
+      stage: 'bbdefense'
+    };
+  }
+
+  const item = allBbdefenseHandsList[Math.floor(Math.random() * allBbdefenseHandsList.length)];
+
+  return {
+    situation: `${item.opener}が${item.size}でオープン。あなたはBB。ハンド：${item.hand}。アクションは？`,
+    correct: item.correct,
+    choices: [
+      'Call',
+      'Fold',
+      '3Bet / Fold 4Bet',
+      '3Bet / Call 4Bet',
+      '3Bet / Raise 4Bet'
+    ],
+    position: 'BB',
+    opener:item.opner,
+    hand: item.hand,
+    stage: 'bbdefense'
   };
 }
 
@@ -205,7 +272,7 @@ const nextButton = document.getElementById('nextButton');
 const tabs = document.querySelectorAll('.tab-button');
 const table = document.getElementById('table');
 
-function renderPositions(selectedPosition) {
+function renderPositions(selectedPosition, enemyPosition = null) {
   table.innerHTML = '';
 
   const W = table.clientWidth;
@@ -214,8 +281,8 @@ function renderPositions(selectedPosition) {
   const cx = W / 2;
   const cy = H / 2;
 
-  const rx = W / 2 * 0.78;
-  const ry = H / 2 * 0.78;
+  const rx = W / 2 * 0.75;
+  const ry = H / 2 * 0.75;
 
   const selfIndex = positions.indexOf(selectedPosition);
   if (selfIndex < 0) {
@@ -240,6 +307,10 @@ function renderPositions(selectedPosition) {
     if (pos === selectedPosition) {
       div.classList.add('active-position');
     }
+       
+    if (pos === enemyPosition) {
+      div.classList.add('enemy-position');
+    }
 
     table.appendChild(div);
   });
@@ -261,6 +332,11 @@ async function displayQuestion() {
       await loadVs3BetRange();
     }
     currentQuestion = generateVs3BetQuestion();
+  } else if (currentMode === 'bbdefense') {
+    if (!bbdefenseRangeData) {
+      await loadBbdefenseRange();
+    }
+    currentQuestion = generateBbdefenseQuestion();
   } else {
     currentQuestion = generateRandomQuestion(currentMode);
   }
@@ -271,7 +347,7 @@ async function displayQuestion() {
   resultText.textContent = '';
   actionButtons.innerHTML = '';
 
-  renderPositions(q.position);
+ renderPositions(q.position, q.opener || q.threeBetter || null);
 
   q.choices.forEach(choice => {
     const btn = document.createElement('button');
