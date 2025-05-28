@@ -182,7 +182,7 @@ function generateVsOpenQuestion() {
       '3Bet / Raise 4Bet'
     ],
     position: item.position,
-    opener:item.opner,
+    opener:item.opener,
     hand: item.hand,
     stage: 'vs_open'
   };
@@ -244,7 +244,7 @@ function generateBbdefenseQuestion() {
       '3Bet / Raise 4Bet'
     ],
     position: 'BB',
-    opener:item.opner,
+    opener:item.opener,
     hand: item.hand,
     stage: 'bbdefense'
   };
