@@ -24,6 +24,7 @@ body {
   cursor: pointer;
   border-radius: 6px;
   transition: background-color 0.2s ease;
+  user-select: none;
 }
 
 .tab-button.active {
@@ -40,6 +41,7 @@ body {
   border: 3px solid #00bcd4;
   border-radius: 50% / 30%;
   box-sizing: border-box;
+  user-select: none;
 }
 
 .position {
@@ -62,6 +64,7 @@ body {
   box-shadow: 0 0 15px 5px #00ffffcc;
   color: #000; /* 蛍光色背景なので文字は黒に */
   font-weight: bolder;
+  user-select: none;
 }
 
 /* 相手のポジション用のスタイル */
@@ -71,6 +74,7 @@ body {
   font-weight: bold;
   border: 2px solid #aa0000;
   z-index: 10;
+  user-select: none;
 }
 
 #actionButtons button,
@@ -85,6 +89,7 @@ body {
   transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.3s ease;
   font-weight: bold;
   letter-spacing: 0.5px;
+  user-select: none;
 }
 
 #actionButtons button:hover,
@@ -97,28 +102,33 @@ body {
   background-color: #00eaff;
   color: #fff;
   box-shadow: 0 0 8px #00eaffaa;
+  user-select: none;
 }
 
 #actionButtons button.call {
   background-color: #29ff8a;
   color: #fff;
   box-shadow: 0 0 8px #29ff8aaa;
+  user-select: none;
 }
 
 #actionButtons button.fold {
   background-color: #ff0055;
   color: #fff;
   box-shadow: 0 0 8px #ff0055aa;
+  user-select: none;
 }
 
 #nextButton {
   background-color: #6c63ff;
   color: #fff;
   box-shadow: 0 0 10px #6c63ffaa;
+  user-select: none;
 }
 
 #resultText {
   font-size: 1.2rem;
   margin-top: 1rem;
   font-weight: bold;
+  user-select: none;
 }
