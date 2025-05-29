@@ -391,7 +391,7 @@ window.addEventListener('load', () => {
   setTimeout(() => {
     const splash = document.getElementById('splashScreen');
     splash.style.transition = 'opacity 0.5s';
-    splash.style.opacity = '0';
+    splash.style.opacity = '1';
     setTimeout(() => {
       splash.style.display = 'none';
 
