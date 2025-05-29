@@ -394,6 +394,10 @@ window.addEventListener('load', () => {
     splash.style.opacity = '0';
     setTimeout(() => {
       splash.style.display = 'none';
+
+      // ★ スプラッシュ終了後に初期描画！
+      displayQuestion();
+
     }, 500);
-  }, 1000); // 1秒間スプラッシュを表示
+  }, 1000);
 });
