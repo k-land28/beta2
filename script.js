@@ -388,9 +388,12 @@ tabs.forEach(tab => {
 nextButton.addEventListener('click', displayQuestion);
 
 window.addEventListener('load', () => {
-  const splash = document.getElementById('splashScreen');
   setTimeout(() => {
-    splash.classList.add('hidden');
-    switchMode(currentMode); // ←通常の表示処理を始める
-  }, 1000); // 1.0秒くらい表示
+    const splash = document.getElementById('splashScreen');
+    splash.style.transition = 'opacity 0.5s';
+    splash.style.opacity = '0';
+    setTimeout(() => {
+      splash.style.display = 'none';
+    }, 500);
+  }, 1000); // 1秒間スプラッシュを表示
 });
