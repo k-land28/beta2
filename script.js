@@ -1,4 +1,3 @@
-
 'use strict';
 
 const positions = ['EP', 'MP', 'CO', 'BTN', 'SB', 'BB'];
@@ -148,7 +147,7 @@ function generateOpenraiseQuestion() {
   const item = allOpenraiseHandsList[Math.floor(Math.random() * allOpenraiseHandsList.length)];
 
   return {
-    situation: `${item.position}からOpen Raiseしますか？ハンド：${item.hand}`,
+    situation: `${item.position}からOpen Raiseしますか？`,
     correct: item.correct,
     choices: ['Raise', 'Fold'],
     position: item.position,
