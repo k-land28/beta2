@@ -171,7 +171,7 @@ function generateVsOpenQuestion() {
   const item = allVsOpenHandsList[Math.floor(Math.random() * allVsOpenHandsList.length)];
 
   return {
-    situation: `${item.opener}がOpenRaiseしました。${item.position}のあなたのアクションは？`,
+    situation: `${item.opener}がOpenRaiseしました。${item.position}のアクションは？`,
     correct: item.correct,
     choices: [
       'Call',
@@ -202,7 +202,7 @@ function generateVs3BetQuestion() {
   const item = allVs3BetHandsList[Math.floor(Math.random() * allVs3BetHandsList.length)];
 
   return {
-    situation: `${item.opener}からOpenRaiseすると、${item.threeBetter}が3Betしました。あなたのアクションは？`,
+    situation: `${item.opener}からOpenRaiseすると、${item.threeBetter}が3Betしました。アクションは？`,
     correct: item.correct,
     choices: [
       'Call',
