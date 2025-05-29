@@ -56,6 +56,7 @@ body {
   50% { content: '..'; }
   75% { content: '...'; }
   100% { content: ''; }
+}
 
 .splash-screen.hidden {
   opacity: 0;
