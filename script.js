@@ -171,7 +171,7 @@ function generateVsOpenQuestion() {
   const item = allVsOpenHandsList[Math.floor(Math.random() * allVsOpenHandsList.length)];
 
   return {
-    situation: `${item.opener}がオープンした状況で、${item.position}のあなたのハンド：${item.hand}`,
+    situation: `${item.opener}がOpenRaiseしました。${item.position}のあなたのアクションは？`,
     correct: item.correct,
     choices: [
       'Call',
@@ -202,7 +202,7 @@ function generateVs3BetQuestion() {
   const item = allVs3BetHandsList[Math.floor(Math.random() * allVs3BetHandsList.length)];
 
   return {
-    situation: `${item.opener}からオープンし、${item.threeBetter}が3Betしてきた状況で、あなたのハンド：${item.hand}`,
+    situation: `${item.opener}からOpenRaiseすると、${item.threeBetter}が3Betしました。あなたのアクションは？`,
     correct: item.correct,
     choices: [
       'Call',
@@ -233,7 +233,7 @@ function generateBbdefenseQuestion() {
   const item = allBbdefenseHandsList[Math.floor(Math.random() * allBbdefenseHandsList.length)];
 
   return {
-    situation: `${item.opener}が${item.size}でオープン。あなたはBB。ハンド：${item.hand}。アクションは？`,
+    situation: `${item.opener}が${item.size}のOpenRaiseをしました。BBのアクションは？`,
     correct: item.correct,
     choices: [
       'Call',
