@@ -392,5 +392,5 @@ window.addEventListener('load', () => {
   setTimeout(() => {
     splash.classList.add('hidden');
     switchMode(currentMode); // ←通常の表示処理を始める
-  }, 1200); // 1.2秒くらい表示
+  }, 1000); // 1.0秒くらい表示
 });
