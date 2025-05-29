@@ -24,6 +24,7 @@ body {
   animation: fadeIn 1s ease-out;
   backdrop-filter: none;
   background-color: #121212;
+  transition: opacity 0.5s ease;
 }
 
 .splash-title {
