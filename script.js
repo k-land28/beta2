@@ -349,6 +349,13 @@ async function displayQuestion() {
   resultText.textContent = '';
   actionButtons.innerHTML = '';
 
+  const contentElements = [situationText, handText, actionButtons];
+  contentElements.forEach(el => {
+  el.classList.remove('fade-slide-in'); // 前のを一旦消す
+  void el.offsetWidth; // 再描画トリガー
+  el.classList.add('fade-slide-in');
+});
+  
  renderPositions(q.position, q.opener || q.threeBetter || null);
 
   q.choices.forEach(choice => {
