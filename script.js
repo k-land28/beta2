@@ -330,7 +330,7 @@ async function displayQuestion() {
   }
 
   const q = currentQuestion;
-  situationText.textContent = q.situation;
+  situationText.innerHTML = q.situation;
   handText.textContent = `ハンド: ${q.hand}`;
   handText.style.fontSize = '24px';
   handText.style.fontWeight = 'bold';
