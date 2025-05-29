@@ -24,6 +24,10 @@ body {
   transition: opacity 0.5s ease;
 }
 
+.splash-screen p {
+  display: block;
+}
+
 .splash-screen.hidden {
   opacity: 0;
   pointer-events: none;
