@@ -249,17 +249,6 @@ function generateBbdefenseQuestion() {
   };
 }
 
-function generateRandomQuestion(mode) {
-  return {
-    situation: `モード「${mode}」の問題をまだ実装していません。`,
-    correct: null,
-    choices: [],
-    position: null,
-    hand: null,
-    stage: mode
-  };
-}
-
 let currentMode = 'openraise';
 let currentQuestion = null;
 
