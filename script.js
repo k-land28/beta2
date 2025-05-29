@@ -388,16 +388,23 @@ tabs.forEach(tab => {
 nextButton.addEventListener('click', displayQuestion);
 
 window.addEventListener('load', () => {
+  const splash = document.getElementById('splashScreen');
+
+  // 最初に表示されていると仮定（HTMLまたはCSSで opacity:1 & display:block にしておく）
+  splash.style.transition = 'opacity 0.5s';
+
+  // 1秒後にフェードアウト開始（opacityを0に）
   setTimeout(() => {
-    const splash = document.getElementById('splashScreen');
-    splash.style.transition = 'opacity 0.5s';
-    splash.style.opacity = '1';
+    splash.style.opacity = '0';
+
+    // opacity変更後、0.5秒待ってdisplay: noneにして完全に非表示
     setTimeout(() => {
       splash.style.display = 'none';
 
       // ★ スプラッシュ終了後に初期描画！
       displayQuestion();
 
-    }, 500);
+    }, 500); // フェードアウト時間と一致させる
+
   }, 1000);
 });
